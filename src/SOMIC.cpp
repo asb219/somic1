@@ -94,8 +94,8 @@ List somic(
   NumericVector precip = soc_data["precip"];
   NumericVector pet = soc_data["pet"];
   NumericVector h2o = soc_data["h2o"];
-  NumericVector a = soc_data["a"];
-  NumericVector c = soc_data["c"];
+  NumericVector a = soc_data["a"]; // temperature rate modifying factor
+  NumericVector c = soc_data["c"]; // soil cover rate modifying factor
   NumericVector add_d13c = soc_data["added.d13c"];
   NumericVector soc_d13c = soc_data["soc.d13c"];
   NumericVector add_14c_age = soc_data["add_14c_age"];
@@ -118,14 +118,18 @@ List somic(
   // Initialisations
   // ---------------
   // initialise soc pools d13C to bulk soc d13C
-  spm_d13c[0] = ipm_d13c[0] = doc_d13c[0] = mb_d13c[0] = mac_d13c[0] = co2_d13c[0] = soc_d13c[0]; 
+  spm_d13c[0] = ipm_d13c[0] = doc_d13c[0] = mb_d13c[0] = mac_d13c[0] = co2_d13c[0] = soc_d13c[0];
   // initialise 14C ages 
+  spm_14c[0] = init_spm_14c_age;
+  ipm_14c[0] = init_ipm_14c_age;
+  doc_14c[0] = init_doc_14c_age;
+  mb_14c[0] = init_mb_14c_age;
+  mac_14c[0] = init_mac_14c_age;
   if (NumericVector::is_na(init_soc_14c_age)) { // if bulk soil 14C not provided, then calculate from 14C of pools (weighted mean)
     init_soc_14c_age = (init_spm_14c_age * spm[0] + init_ipm_14c_age * ipm[0] + init_doc_14c_age * doc[0] + 
       init_mb_14c_age * mb[0] + init_mac_14c_age * mac[0]) / soc[0];
   }
-  // initialise 14C ages of pools equal to bulk soil
-  spm_14c[0] = ipm_14c[0] = doc_14c[0] = mb_14c[0] = mac_14c[0] = soc_14c[0] = leached_14C[0] = init_soc_14c_age; 
+  soc_14c[0] = leached_14C[0] = init_soc_14c_age;
   
   //====================================================================================================================================
   // Calculate pool sizes and isoptope values
