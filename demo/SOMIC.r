@@ -8,6 +8,8 @@ data("fit.par")
 setDT(exp.const)
 setDT(all.data)
 
+setnames(all.data, old="add_14c_age", new="add_14c")
+
 experiments = unique(exp.const$exp)
 for (exp.index in 1:length(experiments)) {
   exp.data = all.data[exp==experiments[exp.index]]

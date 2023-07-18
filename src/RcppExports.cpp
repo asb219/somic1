@@ -6,8 +6,8 @@
 using namespace Rcpp;
 
 // somic
-List somic(DataFrame soc_data, double mic_vmax, double mic_km, double kdissolution, double kdepoly, double kdeath_and_exudates, double kdesorb, double ksorb, double kmicrobial_uptake, double cue_0, double mcue, double mclay, double clay, double thickness, double sat, double max_tsmd, bool use_atsmd, double init_spm_14c_age, double init_ipm_14c_age, double init_doc_14c_age, double init_mb_14c_age, double init_mac_14c_age, double init_soc_14c_age);
-RcppExport SEXP _SOMic_somic(SEXP soc_dataSEXP, SEXP mic_vmaxSEXP, SEXP mic_kmSEXP, SEXP kdissolutionSEXP, SEXP kdepolySEXP, SEXP kdeath_and_exudatesSEXP, SEXP kdesorbSEXP, SEXP ksorbSEXP, SEXP kmicrobial_uptakeSEXP, SEXP cue_0SEXP, SEXP mcueSEXP, SEXP mclaySEXP, SEXP claySEXP, SEXP thicknessSEXP, SEXP satSEXP, SEXP max_tsmdSEXP, SEXP use_atsmdSEXP, SEXP init_spm_14c_ageSEXP, SEXP init_ipm_14c_ageSEXP, SEXP init_doc_14c_ageSEXP, SEXP init_mb_14c_ageSEXP, SEXP init_mac_14c_ageSEXP, SEXP init_soc_14c_ageSEXP) {
+List somic(DataFrame soc_data, double mic_vmax, double mic_km, double kdissolution, double kdepoly, double kdeath_and_exudates, double kdesorb, double ksorb, double kmicrobial_uptake, double cue_0, double mcue, double mclay, double clay, double thickness, double sat, double max_tsmd, bool use_atsmd, bool use_fraction_modern_instead_of_14c_age, double init_spm_14c, double init_ipm_14c, double init_doc_14c, double init_mb_14c, double init_mac_14c, double init_soc_14c);
+RcppExport SEXP _SOMic_somic(SEXP soc_dataSEXP, SEXP mic_vmaxSEXP, SEXP mic_kmSEXP, SEXP kdissolutionSEXP, SEXP kdepolySEXP, SEXP kdeath_and_exudatesSEXP, SEXP kdesorbSEXP, SEXP ksorbSEXP, SEXP kmicrobial_uptakeSEXP, SEXP cue_0SEXP, SEXP mcueSEXP, SEXP mclaySEXP, SEXP claySEXP, SEXP thicknessSEXP, SEXP satSEXP, SEXP max_tsmdSEXP, SEXP use_atsmdSEXP, SEXP use_fraction_modern_instead_of_14c_ageSEXP, SEXP init_spm_14cSEXP, SEXP init_ipm_14cSEXP, SEXP init_doc_14cSEXP, SEXP init_mb_14cSEXP, SEXP init_mac_14cSEXP, SEXP init_soc_14cSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -28,19 +28,20 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< double >::type sat(satSEXP);
     Rcpp::traits::input_parameter< double >::type max_tsmd(max_tsmdSEXP);
     Rcpp::traits::input_parameter< bool >::type use_atsmd(use_atsmdSEXP);
-    Rcpp::traits::input_parameter< double >::type init_spm_14c_age(init_spm_14c_ageSEXP);
-    Rcpp::traits::input_parameter< double >::type init_ipm_14c_age(init_ipm_14c_ageSEXP);
-    Rcpp::traits::input_parameter< double >::type init_doc_14c_age(init_doc_14c_ageSEXP);
-    Rcpp::traits::input_parameter< double >::type init_mb_14c_age(init_mb_14c_ageSEXP);
-    Rcpp::traits::input_parameter< double >::type init_mac_14c_age(init_mac_14c_ageSEXP);
-    Rcpp::traits::input_parameter< double >::type init_soc_14c_age(init_soc_14c_ageSEXP);
-    rcpp_result_gen = Rcpp::wrap(somic(soc_data, mic_vmax, mic_km, kdissolution, kdepoly, kdeath_and_exudates, kdesorb, ksorb, kmicrobial_uptake, cue_0, mcue, mclay, clay, thickness, sat, max_tsmd, use_atsmd, init_spm_14c_age, init_ipm_14c_age, init_doc_14c_age, init_mb_14c_age, init_mac_14c_age, init_soc_14c_age));
+    Rcpp::traits::input_parameter< bool >::type use_fraction_modern_instead_of_14c_age(use_fraction_modern_instead_of_14c_ageSEXP); // added by asb219
+    Rcpp::traits::input_parameter< double >::type init_spm_14c(init_spm_14cSEXP);
+    Rcpp::traits::input_parameter< double >::type init_ipm_14c(init_ipm_14cSEXP);
+    Rcpp::traits::input_parameter< double >::type init_doc_14c(init_doc_14cSEXP);
+    Rcpp::traits::input_parameter< double >::type init_mb_14c(init_mb_14cSEXP);
+    Rcpp::traits::input_parameter< double >::type init_mac_14c(init_mac_14cSEXP);
+    Rcpp::traits::input_parameter< double >::type init_soc_14c(init_soc_14cSEXP);
+    rcpp_result_gen = Rcpp::wrap(somic(soc_data, mic_vmax, mic_km, kdissolution, kdepoly, kdeath_and_exudates, kdesorb, ksorb, kmicrobial_uptake, cue_0, mcue, mclay, clay, thickness, sat, max_tsmd, use_atsmd, use_fraction_modern_instead_of_14c_age, init_spm_14c, init_ipm_14c, init_doc_14c, init_mb_14c, init_mac_14c, init_soc_14c));
     return rcpp_result_gen;
 END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_SOMic_somic", (DL_FUNC) &_SOMic_somic, 23},
+    {"_SOMic_somic", (DL_FUNC) &_SOMic_somic, 24},
     {NULL, NULL, 0}
 };
 

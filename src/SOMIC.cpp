@@ -68,12 +68,13 @@ List somic(
     double sat = 1.0,
     double max_tsmd = 0.0,
     bool use_atsmd = 0,
-    double init_spm_14c_age = 0.0,
-    double init_ipm_14c_age = 0.0,
-    double init_doc_14c_age = 0.0,
-    double init_mb_14c_age = 0.0,
-    double init_mac_14c_age = 0.0,
-    double init_soc_14c_age = NA_REAL) {
+    bool use_fraction_modern_instead_of_14c_age = 1, // (added by asb219)
+    double init_spm_14c = 0.0,
+    double init_ipm_14c = 0.0,
+    double init_doc_14c = 0.0,
+    double init_mb_14c = 0.0,
+    double init_mac_14c = 0.0,
+    double init_soc_14c = NA_REAL) {
   
   // extract input dataframe columns into C++ vectors
   IntegerVector time = soc_data["time"];
@@ -98,7 +99,7 @@ List somic(
   NumericVector c = soc_data["c"]; // soil cover rate modifying factor
   NumericVector add_d13c = soc_data["added.d13c"];
   NumericVector soc_d13c = soc_data["soc.d13c"];
-  NumericVector add_14c_age = soc_data["add_14c_age"];
+  NumericVector add_14c = soc_data["add_14c"];
   NumericVector velocity = soc_data["velocity"];
   
   // define new vectors
@@ -113,23 +114,26 @@ List somic(
   // New internal variables
   double clayfact = calc_clayfact(clay, mclay);
   double ksorb_altered, kmicrobial_uptake_altered, fsorb, fmic, kdoc;
+  double decay_14c = 1.0 / (8267 * 12); // monthly rate of radioactive decay of 14C
   
   //====================================================================================================================================
   // Initialisations
   // ---------------
   // initialise soc pools d13C to bulk soc d13C
   spm_d13c[0] = ipm_d13c[0] = doc_d13c[0] = mb_d13c[0] = mac_d13c[0] = co2_d13c[0] = soc_d13c[0];
-  // initialise 14C ages 
-  spm_14c[0] = init_spm_14c_age;
-  ipm_14c[0] = init_ipm_14c_age;
-  doc_14c[0] = init_doc_14c_age;
-  mb_14c[0] = init_mb_14c_age;
-  mac_14c[0] = init_mac_14c_age;
-  if (NumericVector::is_na(init_soc_14c_age)) { // if bulk soil 14C not provided, then calculate from 14C of pools (weighted mean)
-    init_soc_14c_age = (init_spm_14c_age * spm[0] + init_ipm_14c_age * ipm[0] + init_doc_14c_age * doc[0] + 
-      init_mb_14c_age * mb[0] + init_mac_14c_age * mac[0]) / soc[0];
+  // initialise 14C ages
+  // Edited by asb219 to allow pools to have distinct initial 14C values
+  spm_14c[0] = init_spm_14c;
+  ipm_14c[0] = init_ipm_14c;
+  doc_14c[0] = init_doc_14c;
+  mb_14c[0] = init_mb_14c;
+  mac_14c[0] = init_mac_14c;
+  // Calculation of init_soc_14c is unchanged from the original implementation in domwoolf/somic1
+  if (NumericVector::is_na(init_soc_14c)) { // if bulk soil 14C not provided, then calculate from 14C of pools (weighted mean)
+    init_soc_14c = (init_spm_14c * spm[0] + init_ipm_14c * ipm[0] + init_doc_14c * doc[0] + 
+      init_mb_14c * mb[0] + init_mac_14c * mac[0]) / soc[0];
   }
-  soc_14c[0] = leached_14C[0] = init_soc_14c_age;
+  soc_14c[0] = leached_14C[0] = init_soc_14c;
   
   //====================================================================================================================================
   // Calculate pool sizes and isoptope values
@@ -155,13 +159,24 @@ List somic(
       mac_d13c[i] = ((mac[i-1] - dec_mac[i-1]) * mac_d13c[i-1] + add_mac[i-1] * add_d13c[i-1] + sorption[i-1] * doc_d13c[i-1]) / mac[i];
       
       //14C age of soil carbon pools
-      spm_14c[i] = (spm[i] > 0) ? ((spm[i-1] - dec_spm[i-1]) * spm_14c[i-1] + add_spm[i-1] * add_14c_age[i-1]) / spm[i] + 1 : spm_14c[i-1]; // if there's no spm remaining, just use previous value for spm 14C
-      ipm_14c[i] = (ipm[i] > 0) ? ((ipm[i-1] - dec_ipm[i-1]) * ipm_14c[i-1] + add_ipm[i-1] * add_14c_age[i-1]) / ipm[i] + 1 : ipm_14c[i-1];
-      doc_14c[i] = wmean(NumericVector::create(doc_14c[i-1],            add_14c_age[i-1], spm_14c[i-1], ipm_14c[i-1], mb_14c[i-1], mac_14c[i-1]),
+      if (use_fraction_modern_instead_of_14c_age) { // Added by asb219
+      spm_14c[i] = (spm[i] > 0) ? (1 - decay_14c) * ((spm[i-1] - dec_spm[i-1]) * spm_14c[i-1] + add_spm[i-1] * add_14c[i-1]) / spm[i] : spm_14c[i-1]; // if there's no spm remaining, just use previous value for spm 14C
+      ipm_14c[i] = (ipm[i] > 0) ? (1 - decay_14c) * ((ipm[i-1] - dec_ipm[i-1]) * ipm_14c[i-1] + add_ipm[i-1] * add_14c[i-1]) / ipm[i] : ipm_14c[i-1];
+      doc_14c[i] = wmean(NumericVector::create(doc_14c[i-1],            add_14c[i-1], spm_14c[i-1], ipm_14c[i-1], mb_14c[i-1], mac_14c[i-1]),
+                         NumericVector::create(doc[i-1] - dec_doc[i-1], add_doc[i-1],     dec_spm[i-1], dec_ipm[i-1], dec_mb[i-1], dec_mac[i-1]));
+      doc_14c[i] = (1 - decay_14c) * doc_14c[i];
+      mb_14c[i] = (1 - decay_14c) *  ((mb[i-1] - dec_mb[i-1]) * mb_14c[i-1] + growth[i-1]  * doc_14c[i-1]) / mb[i];
+      mac_14c[i] = (1 - decay_14c) * ((mac[i-1] - dec_mac[i-1]) * mac_14c[i-1] + add_mac[i-1] * add_14c[i-1] + sorption[i-1] * doc_14c[i-1]) / mac[i];
+      }
+      else { // This is unchanged from the original implementation in domwoolf/somic1
+      spm_14c[i] = (spm[i] > 0) ? ((spm[i-1] - dec_spm[i-1]) * spm_14c[i-1] + add_spm[i-1] * add_14c[i-1]) / spm[i] + 1 : spm_14c[i-1]; // if there's no spm remaining, just use previous value for spm 14C
+      ipm_14c[i] = (ipm[i] > 0) ? ((ipm[i-1] - dec_ipm[i-1]) * ipm_14c[i-1] + add_ipm[i-1] * add_14c[i-1]) / ipm[i] + 1 : ipm_14c[i-1];
+      doc_14c[i] = wmean(NumericVector::create(doc_14c[i-1],            add_14c[i-1], spm_14c[i-1], ipm_14c[i-1], mb_14c[i-1], mac_14c[i-1]),
                          NumericVector::create(doc[i-1] - dec_doc[i-1], add_doc[i-1],     dec_spm[i-1], dec_ipm[i-1], dec_mb[i-1], dec_mac[i-1]));
       doc_14c[i] = doc_14c[i] + 1.0;
       mb_14c[i] = ((mb[i-1] - dec_mb[i-1]) * mb_14c[i-1] + growth[i-1]  * doc_14c[i-1]) / mb[i] + 1;
-      mac_14c[i] = ((mac[i-1] - dec_mac[i-1]) * mac_14c[i-1] + add_mac[i-1] * add_14c_age[i-1] + sorption[i-1] * doc_14c[i-1]) / mac[i] + 1;
+      mac_14c[i] = ((mac[i-1] - dec_mac[i-1]) * mac_14c[i-1] + add_mac[i-1] * add_14c[i-1] + sorption[i-1] * doc_14c[i-1]) / mac[i] + 1;
+      }
     }
     //====================================================================================================================================
     // Calculate rate modifiers
