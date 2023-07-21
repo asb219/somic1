@@ -1,7 +1,7 @@
 Package: SOMic
 Type: Package
 Title: Soil Organic Carbon Model with Microbial Dynamics
-Version: 1.0
+Version: 1.1
 Date: 2018-07-14
 Author: Dominic Woolf
 Maintainer: Dominic Woolf <d.woolf@cornell.edu>
